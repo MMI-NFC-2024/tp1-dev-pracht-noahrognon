@@ -1,0 +1,179 @@
+---
+// src/pages/examples.astro
+import Layout from "../layouts/Layout.astro";
+import Chart from "../components/Chart.astro";
+import * as Plot from "@observablehq/plot";
+
+import carsRaw from "../data/cars.json";
+import weatherRaw from "../data/weather.json";
+import industriesRaw from "../data/industries.json";
+
+/* Préparation des données */
+
+// Cars
+const cars = carsRaw
+    .filter((d) => d["economy (mpg)"] != null && d["power (hp)"] != null)
+    .map((d) => ({
+        ...d,
+        mpg: +d["economy (mpg)"],
+        hp: +d["power (hp)"],
+        weight: +d["weight (lb)"],
+        cyl: +d["cylinders"],
+        year: +d["year"],
+    }));
+
+// Weather
+const weather = weatherRaw.map((d) => ({
+    ...d,
+    date: new Date(d.date),
+    precipitation: +d.precipitation,
+    temp_max: +d.temp_max,
+    temp_min: +d.temp_min,
+    wind: +d.wind,
+}));
+
+// Industries
+const industries = industriesRaw.map((d) => ({
+    ...d,
+    date: new Date(d.date),
+    unemployed: +d.unemployed,
+}));
+
+/* Options Plot */
+
+// 1) Cars — MPG vs HP
+const carsOptions = {
+    title: "Cars — Fuel economy vs Power",
+    marks: [
+        Plot.dot(cars, {
+            x: (d) => d.hp,
+            y: (d) => d.mpg,
+            stroke: (d) => d.cyl,
+            r: 3,
+            tip: true,
+        }),
+        Plot.linearRegressionY(cars, {
+            x: (d) => d.hp,
+            y: (d) => d.mpg,
+            stroke: "black",
+        }),
+    ],
+    x: { label: "Power (hp)" },
+    y: { label: "Economy (mpg)", grid: true },
+    marginLeft: 60,
+    marginBottom: 40,
+};
+
+// 2) Industries — Unemployed over time
+const industriesOptions = {
+    title: "Industries — Unemployed over time",
+    marks: [
+        Plot.line(industries, {
+            x: (d) => d.date,
+            y: (d) => d.unemployed,
+            stroke: (d) => d.industry,
+        }),
+        Plot.dot(industries, {
+            x: (d) => d.date,
+            y: (d) => d.unemployed,
+            stroke: (d) => d.industry,
+        }),
+    ],
+    x: { label: "Date", type: "utc" },
+    y: { label: "Unemployed", grid: true },
+    marginLeft: 64,
+    marginBottom: 44,
+};
+
+// 3) Weather — Températures quotidiennes par ville
+const weatherOptions = {
+    title: "Weather — Daily temperatures",
+    marks: [
+        Plot.areaY(weather, {
+            x: (d) => d.date,
+            y1: (d) => d.temp_min,
+            y2: (d) => d.temp_max,
+            fill: (d) => d.location,
+            opacity: 0.35,
+        }),
+        Plot.line(weather, {
+            x: (d) => d.date,
+            y: (d) => d.temp_max,
+            stroke: (d) => d.location,
+        }),
+        Plot.line(weather, {
+            x: (d) => d.date,
+            y: (d) => d.temp_min,
+            stroke: (d) => d.location,
+        }),
+    ],
+    x: { label: "Date", type: "utc" },
+    y: { label: "Temperature (°C)", grid: true },
+    marginLeft: 64,
+    marginBottom: 44,
+};
+---
+
+<Layout title="Plot + Astro — Cars / Industries / Weather">
+    <section class="space-y-8">
+        <!-- Cars -->
+        <article
+            class="bg-white/80 dark:bg-zinc-900 rounded-2xl shadow-lg ring-1 ring-black/5 p-6"
+        >
+            <header class="mb-4">
+                <h2 class="text-xl font-semibold tracking-tight">Cars</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">
+                    MPG en fonction de la puissance (hp). Couleur : nombre de
+                    cylindres.
+                </p>
+            </header>
+            <div
+                class="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 p-3"
+            >
+                <Chart options={carsOptions} class="chart" />
+            </div>
+        </article>
+
+        <!-- Industries -->
+        <article
+            class="bg-white/80 dark:bg-zinc-900 rounded-2xl shadow-lg ring-1 ring-black/5 p-6"
+        >
+            <header class="mb-4">
+                <h2 class="text-xl font-semibold tracking-tight">Industries</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Évolution du chômage par industrie (séries temporelles).
+                </p>
+            </header>
+            <div
+                class="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 p-3"
+            >
+                <Chart options={industriesOptions} class="chart" />
+            </div>
+        </article>
+
+        <!-- Weather -->
+        <article
+            class="bg-white/80 dark:bg-zinc-900 rounded-2xl shadow-lg ring-1 ring-black/5 p-6"
+        >
+            <header class="mb-4">
+                <h2 class="text-xl font-semibold tracking-tight">Weather</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Températures quotidiennes par ville : zone [min, max] +
+                    lignes.
+                </p>
+            </header>
+            <div
+                class="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 p-3"
+            >
+                <Chart options={weatherOptions} class="chart" />
+            </div>
+        </article>
+    </section>
+
+    <style>
+        .chart svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</Layout>

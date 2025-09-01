@@ -1,0 +1,69 @@
+---
+// src/layouts/Base.astro
+import "../styles/global.css";
+
+const { title = "Plot + Astro", description = "" } = Astro.props;
+
+// Active state (pour le menu)
+const path = Astro.url.pathname;
+const isActive = (href) => path === href;
+---
+
+<html lang="fr" class="scroll-smooth">
+	<head>
+		<meta charset="utf-8" />
+		<title>{title}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		{description && <meta name="description" content={description} />}
+	</head>
+	<body class="min-h-screen text-slate-800 dark:text-slate-100 bg-black">
+		<!-- Header / Nav -->
+		<header
+			class="sticky top-0 z-40 backdrop-blur bg-white/70 dark:bg-zinc-900/70 border-b border-white/20 dark:border-zinc-800"
+		>
+			<nav
+				class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex items-center h-14"
+			>
+				<a href="/" class="font-semibold tracking-tight">
+					<span class="inline-flex items-center gap-2">
+						<span class="h-2 w-2 rounded-full bg-emerald-500"
+						></span>
+						Plot + Astro (SSR)
+					</span>
+				</a>
+				<div class="ml-auto flex items-center gap-2">
+					<a
+						href="/"
+						class={`px-3 py-1.5 rounded-lg text-sm transition ${
+							isActive("/")
+								? "bg-emerald-500 text-white"
+								: "hover:bg-slate-200/60 dark:hover:bg-zinc-800"
+						}`}>Penguins</a
+					>
+					<a
+						href="/examples"
+						class={`px-3 py-1.5 rounded-lg text-sm transition ${
+							isActive("/examples")
+								? "bg-emerald-500 text-white"
+								: "hover:bg-slate-200/60 dark:hover:bg-zinc-800"
+						}`}>Cars / Industries / Weather</a
+					>
+				</div>
+			</nav>
+		</header>
+
+		<!-- Main -->
+		<main class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+			<slot />
+		</main>
+
+		<!-- Footer -->
+		<footer class="mt-16 border-t border-white/20 dark:border-zinc-800">
+			<div
+				class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 text-xs text-slate-500"
+			>
+				Rendu MMI — Observable Plot + Astro 
+			</div>
+		</footer>
+	</body>
+</html>
