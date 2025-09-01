@@ -7,10 +7,23 @@ import * as Plot from "@observablehq/plot";
 import carsRaw from "../data/cars.json";
 import weatherRaw from "../data/weather.json";
 import industriesRaw from "../data/industries.json";
+import alphabetRaw from "../data/alaphabet.json";
+import cityRaw from "../data/city.json";
 
 /* Préparation des données */
 
 // Cars
+const alphabet = alphabetRaw.map((d) => ({
+    letter: d.letter,
+    frequency: +d.frequency,
+}));
+
+const city = cityRaw.map((d) => ({
+    ...d,
+    pop1980: +d.POP_1980,
+    pop2015: +d.POP_2015,
+}));
+
 const cars = carsRaw
     .filter((d) => d["economy (mpg)"] != null && d["power (hp)"] != null)
     .map((d) => ({
@@ -112,6 +125,47 @@ const weatherOptions = {
     marginLeft: 64,
     marginBottom: 44,
 };
+// Alphabet — fréquence des lettres
+const alphabetOptions = {
+    title: "Alphabet — Letter frequencies",
+    marks: [
+        Plot.barY(alphabet, { x: "letter", y: "frequency", fill: "letter" }),
+        Plot.ruleY([0]),
+    ],
+    y: { grid: true, label: "Frequency" },
+    marginLeft: 60,
+    marginBottom: 40,
+};
+
+// City — Population 1980 vs 2015 (scatter)
+const cityOptions = {
+    title: "City — Population 1980 vs 2015",
+    marks: [
+        Plot.dot(city, {
+            x: "pop1980",
+            y: "pop2015",
+            r: 4,
+            tip: true,
+            stroke: "state_display",
+        }),
+        Plot.line(
+            [
+                { pop1980: 0, pop2015: 0 },
+                { pop1980: 1500000, pop2015: 1500000 },
+            ],
+            {
+                x: "pop1980",
+                y: "pop2015",
+                stroke: "black",
+                strokeDasharray: "4,2",
+            },
+        ),
+    ],
+    x: { label: "Population 1980" },
+    y: { label: "Population 2015" },
+    marginLeft: 64,
+    marginBottom: 44,
+};
 ---
 
 <Layout title="Plot + Astro — Cars / Industries / Weather">
@@ -169,6 +223,39 @@ const weatherOptions = {
             </div>
         </article>
     </section>
+    <!-- Alphabet -->
+    <article
+        class="bg-white/80 dark:bg-zinc-900 rounded-2xl shadow-lg ring-1 ring-black/5 p-6"
+    >
+        <header class="mb-4">
+            <h2 class="text-xl font-semibold tracking-tight">Alphabet</h2>
+            <p class="text-slate-600 dark:text-slate-400 text-sm">
+                Fréquence relative de certaines lettres.
+            </p>
+        </header>
+        <div
+            class="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 p-3"
+        >
+            <Chart options={alphabetOptions} class="chart" />
+        </div>
+    </article>
+
+    <!-- City -->
+    <article
+        class="bg-white/80 dark:bg-zinc-900 rounded-2xl shadow-lg ring-1 ring-black/5 p-6"
+    >
+        <header class="mb-4">
+            <h2 class="text-xl font-semibold tracking-tight">City</h2>
+            <p class="text-slate-600 dark:text-slate-400 text-sm">
+                Comparaison de la population en 1980 et en 2015 par métropole.
+            </p>
+        </header>
+        <div
+            class="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 p-3"
+        >
+            <Chart options={cityOptions} class="chart" />
+        </div>
+    </article>
 
     <style>
         .chart svg {
